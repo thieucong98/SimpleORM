@@ -9,7 +9,7 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 
-public interface CrudRepository<E, Identity> {
+public interface CrudRepository<E, Identity> extends DynamicRepository {
 
     Optional<E> findById(Identity id);
 

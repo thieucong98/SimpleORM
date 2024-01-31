@@ -4,8 +4,8 @@ import com.popeye.orm.anotation.Column;
 import com.popeye.orm.anotation.Id;
 import com.popeye.orm.anotation.Table;
 import com.popeye.orm.anotation.Transient;
-import com.popeye.orm.common.*;
 import com.popeye.orm.common.Parameter;
+import com.popeye.orm.common.*;
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -15,16 +15,14 @@ import java.sql.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-public class CrudRepositoryImpl<E, Identity> implements CrudRepository<E, Identity> {
+public class CrudRepositoryImpl<E, Identity> extends DynamicRepositoryImpl implements CrudRepository<E, Identity> {
     private static final Logger logger = Logger.getLogger(CrudRepositoryImpl.class.getName());
-    private static boolean SHOW_QUERY = false;
-    private final Connection connection;
+
     private Class<E> entityClass;
     private Class<Identity> identityClass;
 
@@ -39,7 +37,7 @@ public class CrudRepositoryImpl<E, Identity> implements CrudRepository<E, Identi
     private boolean isView;
 
     public CrudRepositoryImpl(Connection connection) {
-        this.connection = connection;
+        super(connection);
         this.loadEntityInfo();
     }
 
@@ -47,15 +45,6 @@ public class CrudRepositoryImpl<E, Identity> implements CrudRepository<E, Identi
      * @USING_FOR: Turn on/off logging sql query
      * @DEFAULT_VALUE: false.
      */
-    public static void setShowQuery(boolean showQuery) {
-        SHOW_QUERY = showQuery;
-    }
-
-    private static void logQuery(Statement statement) {
-        if (SHOW_QUERY) {
-            logger.info(statement.toString());
-        }
-    }
 
     @Override
     public Optional<E> findById(Identity identity) {
@@ -174,6 +163,7 @@ public class CrudRepositoryImpl<E, Identity> implements CrudRepository<E, Identi
 
         return result;
     }
+
 
     @Override
     public E insert(E entity) throws SQLException, IllegalAccessException {
@@ -520,10 +510,6 @@ public class CrudRepositoryImpl<E, Identity> implements CrudRepository<E, Identi
         return this.columnNames;
     }
 
-    protected synchronized Connection getConnection() {
-        return this.connection;
-    }
-
     private void loadEntityInfo() {
         Type genericSuperclass = this.getClass().getGenericSuperclass();
         Type[] actualTypeArguments = ((ParameterizedType) genericSuperclass).getActualTypeArguments();
@@ -537,19 +523,6 @@ public class CrudRepositoryImpl<E, Identity> implements CrudRepository<E, Identi
         this.idField = this.loadIdField(declaredFields, this.entityClass);
     }
 
-    private synchronized void buildParameterForStatement(PreparedStatement statement, List<Parameter> parameters) throws SQLException {
-        if (parameters == null || parameters.isEmpty()) {
-            logQuery(statement);
-            return;
-        }
-
-        AtomicInteger atomicInteger = new AtomicInteger(1);
-        for (Parameter parameter : parameters) {
-            statement.setObject(atomicInteger.getAndIncrement(), parameter.getValue());
-        }
-
-        logQuery(statement);
-    }
 
     private String loadTableName(Class<E> entityClass) {
         Table tableAnnotation = entityClass.getAnnotation(Table.class);
@@ -887,15 +860,6 @@ public class CrudRepositoryImpl<E, Identity> implements CrudRepository<E, Identi
         return item;
     }
 
-    private Map<String, String> getColumnByResultSet(ResultSet rs) throws SQLException {
-        Map<String, String> result = new HashMap<>();
-        int columnCount = rs.getMetaData().getColumnCount();
-        for (int i = 1; i <= columnCount; i++) {
-            String columnName = rs.getMetaData().getColumnLabel(i);
-            result.put(columnName, columnName);
-        }
-        return result;
-    }
 
     private void checkUpsert() {
         if (this.isReadOnly || this.isView) {
