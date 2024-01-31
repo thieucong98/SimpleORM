@@ -1,14 +1,9 @@
 package com.popeye.orm;
 
-import com.popeye.orm.common.CustomQuery;
-import com.popeye.orm.common.Pagination;
 import com.popeye.orm.common.Parameter;
-import com.popeye.orm.common.Sort;
 import com.popeye.orm.entity.ExampleEntity;
 import com.popeye.orm.entity.TestId;
-import com.popeye.orm.repository.CrudRepository;
-import com.popeye.orm.repository.CrudRepositoryImpl;
-import com.popeye.orm.repository.ExampleRepository;
+import com.popeye.orm.repository.*;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -47,15 +42,14 @@ public class DemoCrudExample3Application {
         CrudRepositoryImpl.setShowQuery(true);
         Connection connection = ConnectionPool.getConnection();
 
-        CrudRepository<ExampleEntity, TestId> crudRepository = new ExampleRepository(connection);
+        DynamicRepository dynamicRepository = new DynamicRepositoryImpl(connection);
 
-
-        List<Map<String, Object>> allWithDynamicObject = crudRepository.findAllWithDynamicObject(
+        List<Map<String, Object>> allWithDynamicObject = dynamicRepository.findAllWithDynamicObject(
                 "SELECT * FROM demo_orm demo_orm  WHERE code_name = ?  ORDER BY code_id DESC  LIMIT 20 OFFSET 0",
                 Parameter.of("code_name", "asdkl")
         );
 
-        List<Map<String, Object>> allWithDynamicObject2 = crudRepository.findAllWithDynamicObject(
+        List<Map<String, Object>> allWithDynamicObject2 = dynamicRepository.findAllWithDynamicObject(
                 "SELECT * FROM demo_orm demo_orm   ORDER BY code_id DESC  LIMIT 20 OFFSET 0"
         );
         connection.close();

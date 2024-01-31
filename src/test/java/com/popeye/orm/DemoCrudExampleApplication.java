@@ -1,6 +1,5 @@
 package com.popeye.orm;
 
-import com.mysql.cj.jdbc.JdbcConnection;
 import com.popeye.orm.common.CustomQuery;
 import com.popeye.orm.common.Pagination;
 import com.popeye.orm.common.Parameter;
