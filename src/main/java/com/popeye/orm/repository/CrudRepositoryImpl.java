@@ -20,10 +20,10 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-public class CrudRepositoryImpl<E, Identity> extends DynamicRepositoryImpl implements CrudRepository<E, Identity> {
+public class CrudRepositoryImpl<Entity, Identity> extends DynamicRepositoryImpl implements CrudRepository<Entity, Identity> {
     private static final Logger logger = Logger.getLogger(CrudRepositoryImpl.class.getName());
 
-    private Class<E> entityClass;
+    private Class<Entity> entityClass;
     private Class<Identity> identityClass;
 
     private Field idField;
@@ -47,10 +47,10 @@ public class CrudRepositoryImpl<E, Identity> extends DynamicRepositoryImpl imple
      */
 
     @Override
-    public Optional<E> findById(Identity identity) {
+    public Optional<Entity> findById(Identity identity) {
         this.checkView();
         List<Parameter> idParameters = this.buildParameterFromId(identity);
-        List<E> data = this.findAll(idParameters);
+        List<Entity> data = this.findAll(idParameters);
         if (data.isEmpty() || data.size() == 1) {
             return data.stream().findFirst();
         }
@@ -60,80 +60,80 @@ public class CrudRepositoryImpl<E, Identity> extends DynamicRepositoryImpl imple
     }
 
     @Override
-    public List<E> findAll() {
+    public List<Entity> findAll() {
         return this.findAll(null, null, null);
     }
 
     @Override
-    public List<E> findAllWithExcludeFields(List<String> ignoreFields) {
+    public List<Entity> findAllWithExcludeFields(List<String> ignoreFields) {
         return this.findAllWithExcludeFields(ignoreFields, null, null, null);
     }
 
     @Override
-    public List<E> findAll(Parameter... parameters) {
+    public List<Entity> findAll(Parameter... parameters) {
         return this.findAll(Arrays.asList(parameters), null, null);
     }
 
     @Override
-    public List<E> findAllWithExcludeFields(List<String> ignoreFields, Parameter... parameters) {
+    public List<Entity> findAllWithExcludeFields(List<String> ignoreFields, Parameter... parameters) {
         return this.findAllWithExcludeFields(ignoreFields, Arrays.asList(parameters), null, null);
     }
 
     @Override
-    public List<E> findAll(Sort... sorts) {
+    public List<Entity> findAll(Sort... sorts) {
         return this.findAll(null, Arrays.asList(sorts), null);
     }
 
     @Override
-    public List<E> findAll(Pagination pagination) {
+    public List<Entity> findAll(Pagination pagination) {
         return this.findAll(null, null, pagination);
     }
 
     @Override
-    public List<E> findAllWithExcludeFields(List<String> ignoreFields, Sort... sorts) {
+    public List<Entity> findAllWithExcludeFields(List<String> ignoreFields, Sort... sorts) {
         return this.findAllWithExcludeFields(ignoreFields, null, Arrays.asList(sorts), null);
     }
 
     @Override
-    public List<E> findAll(List<Parameter> parameters) {
+    public List<Entity> findAll(List<Parameter> parameters) {
         return this.findAll(parameters, null, null);
     }
 
     @Override
-    public List<E> findAllWithExcludeFields(List<String> ignoreFields, List<Parameter> parameters) {
+    public List<Entity> findAllWithExcludeFields(List<String> ignoreFields, List<Parameter> parameters) {
         return this.findAllWithExcludeFields(ignoreFields, parameters, null, null);
     }
 
     @Override
-    public List<E> findAll(List<Parameter> parameters, Pagination pagination) {
+    public List<Entity> findAll(List<Parameter> parameters, Pagination pagination) {
         return this.findAll(parameters, null, pagination);
     }
 
     @Override
-    public List<E> findAllWithExcludeFields(List<String> ignoreFields, List<Parameter> parameters, Pagination pagination) {
+    public List<Entity> findAllWithExcludeFields(List<String> ignoreFields, List<Parameter> parameters, Pagination pagination) {
         return this.findAllWithExcludeFields(ignoreFields, parameters, null, pagination);
     }
 
     @Override
-    public List<E> findAll(List<Parameter> parameters, List<Sort> sorts) {
+    public List<Entity> findAll(List<Parameter> parameters, List<Sort> sorts) {
         return this.findAll(parameters, sorts, null);
     }
 
     @Override
-    public List<E> findAllWithExcludeFields(List<String> ignoreFields, List<Parameter> parameters, List<Sort> sorts) {
+    public List<Entity> findAllWithExcludeFields(List<String> ignoreFields, List<Parameter> parameters, List<Sort> sorts) {
         return this.findAllWithExcludeFields(ignoreFields, parameters, sorts, null);
     }
 
     @Override
-    public List<E> findAll(List<Parameter> parameters, List<Sort> sorts, Pagination pagination) {
+    public List<Entity> findAll(List<Parameter> parameters, List<Sort> sorts, Pagination pagination) {
         this.checkView();
         String query = this.buildSelectQuery(parameters, sorts, pagination);
-        List<E> result = new ArrayList<>();
+        List<Entity> result = new ArrayList<>();
         try (PreparedStatement statement = this.getConnection().prepareStatement(query, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY)) {
             this.buildParameterForStatement(statement, parameters);
             ResultSet rs = statement.executeQuery();
             while (rs.next()) {
-                E item = getEntity(rs);
+                Entity item = getEntity(rs);
                 result.add(item);
             }
 
@@ -145,15 +145,15 @@ public class CrudRepositoryImpl<E, Identity> extends DynamicRepositoryImpl imple
     }
 
     @Override
-    public List<E> findAllWithExcludeFields(List<String> ignoreFields, List<Parameter> parameters, List<Sort> sorts, Pagination pagination) {
+    public List<Entity> findAllWithExcludeFields(List<String> ignoreFields, List<Parameter> parameters, List<Sort> sorts, Pagination pagination) {
         this.checkView();
         String query = this.buildSelectQueryWithIgnoreFields(ignoreFields, parameters, sorts, pagination);
-        List<E> result = new ArrayList<>();
+        List<Entity> result = new ArrayList<>();
         try (PreparedStatement statement = this.getConnection().prepareStatement(query, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY)) {
             this.buildParameterForStatement(statement, parameters);
             ResultSet rs = statement.executeQuery();
             while (rs.next()) {
-                E item = getEntity(rs);
+                Entity item = getEntity(rs);
                 result.add(item);
             }
 
@@ -166,12 +166,12 @@ public class CrudRepositoryImpl<E, Identity> extends DynamicRepositoryImpl imple
 
 
     @Override
-    public E insert(E entity) throws SQLException, IllegalAccessException {
+    public Entity insert(Entity entity) throws SQLException, IllegalAccessException {
         return this.insert(Collections.singletonList(entity)).stream().findFirst().orElse(entity);
     }
 
     @Override
-    public List<E> insert(List<E> entities) throws SQLException, IllegalAccessException {
+    public List<Entity> insert(List<Entity> entities) throws SQLException, IllegalAccessException {
         this.checkUpsert();
         if (entities == null || entities.isEmpty()) {
             logger.warning("Skip insert because entities is null or is empty");
@@ -180,7 +180,7 @@ public class CrudRepositoryImpl<E, Identity> extends DynamicRepositoryImpl imple
         String query = this.buildInsertField();
         Connection connection = this.getConnection();
         try (PreparedStatement statement = connection.prepareStatement(query)) {
-            for (E entity : entities) {
+            for (Entity entity : entities) {
                 List<Parameter> parameterForInsertStatement = this.getParameterInsertStatement(entity);
                 this.buildParameterForStatement(statement, parameterForInsertStatement);
                 statement.addBatch();
@@ -197,29 +197,29 @@ public class CrudRepositoryImpl<E, Identity> extends DynamicRepositoryImpl imple
     }
 
     @Override
-    public E update(E entity) throws SQLException, IllegalAccessException {
+    public Entity update(Entity entity) throws SQLException, IllegalAccessException {
         List<Parameter> idParameters = this.buildIdParameterFromEntity(entity);
         return this.update(entity, idParameters);
     }
 
     @Override
-    public E updateWithExcludeFields(E entity, List<String> ignoreFields) throws SQLException, IllegalAccessException {
+    public Entity updateWithExcludeFields(Entity entity, List<String> ignoreFields) throws SQLException, IllegalAccessException {
         List<Parameter> idParameters = this.buildIdParameterFromEntity(entity);
         return this.updateWithExcludeFields(entity, ignoreFields, idParameters);
     }
 
     @Override
-    public E update(E entity, Parameter... parameters) throws SQLException, IllegalAccessException {
+    public Entity update(Entity entity, Parameter... parameters) throws SQLException, IllegalAccessException {
         return this.update(entity, Arrays.asList(parameters));
     }
 
     @Override
-    public E updateWithExcludeFields(E entity, List<String> ignoreFields, Parameter... parameters) throws SQLException, IllegalAccessException {
+    public Entity updateWithExcludeFields(Entity entity, List<String> ignoreFields, Parameter... parameters) throws SQLException, IllegalAccessException {
         return this.updateWithExcludeFields(entity, ignoreFields, Arrays.asList(parameters));
     }
 
     @Override
-    public E update(E entity, List<Parameter> parameters) throws SQLException, IllegalAccessException {
+    public Entity update(Entity entity, List<Parameter> parameters) throws SQLException, IllegalAccessException {
         this.checkUpsert();
         String query = this.buildUpdateQuery(parameters);
         Connection connection = this.getConnection();
@@ -237,7 +237,7 @@ public class CrudRepositoryImpl<E, Identity> extends DynamicRepositoryImpl imple
     }
 
     @Override
-    public E updateWithExcludeFields(E entity, List<String> ignoreFields, List<Parameter> parameters) throws SQLException, IllegalAccessException {
+    public Entity updateWithExcludeFields(Entity entity, List<String> ignoreFields, List<Parameter> parameters) throws SQLException, IllegalAccessException {
         this.checkUpsert();
         String query = this.buildUpdateQueryWithExcludeFields(ignoreFields, parameters);
         Connection connection = this.getConnection();
@@ -255,7 +255,7 @@ public class CrudRepositoryImpl<E, Identity> extends DynamicRepositoryImpl imple
     }
 
     @Override
-    public List<E> update(List<E> entities) throws SQLException, IllegalAccessException {
+    public List<Entity> update(List<Entity> entities) throws SQLException, IllegalAccessException {
         this.checkUpsert();
         if (entities == null || entities.isEmpty()) {
             logger.warning("Skip update because entities is null or is empty");
@@ -264,7 +264,7 @@ public class CrudRepositoryImpl<E, Identity> extends DynamicRepositoryImpl imple
         String query = this.buildUpdateQuery(this.buildIdParameterFromEntity(entities.get(0)));
         Connection connection = this.getConnection();
         try (PreparedStatement statement = connection.prepareStatement(query)) {
-            for (E entity : entities) {
+            for (Entity entity : entities) {
                 List<Parameter> idParameters = this.buildIdParameterFromEntity(entity);
                 List<Parameter> parameterForUpdateStatement = this.getParameterUpdateStatement(entity, idParameters);
                 this.buildParameterForStatement(statement, parameterForUpdateStatement);
@@ -282,7 +282,7 @@ public class CrudRepositoryImpl<E, Identity> extends DynamicRepositoryImpl imple
     }
 
     @Override
-    public List<E> updateWithExcludeFields(List<E> entities, List<String> ignoreFields) throws SQLException, IllegalAccessException {
+    public List<Entity> updateWithExcludeFields(List<Entity> entities, List<String> ignoreFields) throws SQLException, IllegalAccessException {
         this.checkUpsert();
         if (entities == null || entities.isEmpty()) {
             logger.warning("Skip updateWithExcludeFields because entities is null or is empty");
@@ -291,7 +291,7 @@ public class CrudRepositoryImpl<E, Identity> extends DynamicRepositoryImpl imple
         String query = this.buildUpdateQueryWithExcludeFields(ignoreFields, this.buildIdParameterFromEntity(entities.get(0)));
         Connection connection = this.getConnection();
         try (PreparedStatement statement = connection.prepareStatement(query)) {
-            for (E entity : entities) {
+            for (Entity entity : entities) {
                 List<Parameter> idParameters = this.buildIdParameterFromEntity(entity);
                 List<Parameter> parameterForUpdateStatement = this.getParameterUpdateStatementWithExcludeFields(entity, ignoreFields, idParameters);
                 this.buildParameterForStatement(statement, parameterForUpdateStatement);
@@ -309,12 +309,12 @@ public class CrudRepositoryImpl<E, Identity> extends DynamicRepositoryImpl imple
     }
 
     @Override
-    public E replace(E entity) throws SQLException, IllegalAccessException {
+    public Entity replace(Entity entity) throws SQLException, IllegalAccessException {
         return this.replace(Collections.singletonList(entity)).stream().findFirst().orElse(entity);
     }
 
     @Override
-    public List<E> replace(List<E> entities) throws SQLException, IllegalAccessException {
+    public List<Entity> replace(List<Entity> entities) throws SQLException, IllegalAccessException {
         this.checkUpsert();
         if (entities == null || entities.isEmpty()) {
             logger.warning("Skip replace because entities is null or is empty");
@@ -323,7 +323,7 @@ public class CrudRepositoryImpl<E, Identity> extends DynamicRepositoryImpl imple
         String query = this.buildReplaceQuery();
         Connection connection = this.getConnection();
         try (PreparedStatement statement = connection.prepareStatement(query)) {
-            for (E entity : entities) {
+            for (Entity entity : entities) {
                 List<Parameter> parameterForInsertStatement = this.getParameterInsertStatement(entity);
                 this.buildParameterForStatement(statement, parameterForInsertStatement);
                 statement.addBatch();
@@ -340,13 +340,13 @@ public class CrudRepositoryImpl<E, Identity> extends DynamicRepositoryImpl imple
     }
 
     @Override
-    public Boolean delete(E entity) {
+    public Boolean delete(Entity entity) {
         List<Parameter> idParameters = this.buildIdParameterFromEntity(entity);
         return this.delete(idParameters);
     }
 
     @Override
-    public Boolean deleteAll(List<E> entities) {
+    public Boolean deleteAll(List<Entity> entities) {
         if (EmbeddedId.class.isAssignableFrom(this.identityClass)) {
             throw new RuntimeException("This function is not support delete multiple entities with ID of entity is EmbeddedId class");
         }
@@ -423,8 +423,8 @@ public class CrudRepositoryImpl<E, Identity> extends DynamicRepositoryImpl imple
     }
 
     @Override
-    public List<E> findAllByCustomQuery(CustomQuery<List<E>> customQuery) {
-        List<E> result = new ArrayList<>();
+    public List<Entity> findAllByCustomQuery(CustomQuery<List<Entity>> customQuery) {
+        List<Entity> result = new ArrayList<>();
         Connection connection = getConnection();
         String query = customQuery.getQuery();
         List<Parameter> parameters = customQuery.getParameters();
@@ -432,7 +432,7 @@ public class CrudRepositoryImpl<E, Identity> extends DynamicRepositoryImpl imple
             buildParameterForStatement(preparedStatement, parameters);
             ResultSet rs = preparedStatement.executeQuery();
             while (rs.next()) {
-                E entity = getEntity(rs);
+                Entity entity = getEntity(rs);
                 result.add(entity);
             }
         } catch (SQLException | InstantiationException | IllegalAccessException | NoSuchMethodException |
@@ -443,7 +443,7 @@ public class CrudRepositoryImpl<E, Identity> extends DynamicRepositoryImpl imple
     }
 
     @Override
-    public E findByCustomQuery(CustomQuery<E> customQuery) {
+    public Entity findByCustomQuery(CustomQuery<Entity> customQuery) {
         Connection connection = getConnection();
         String query = customQuery.getQuery();
         List<Parameter> parameters = customQuery.getParameters();
@@ -459,14 +459,14 @@ public class CrudRepositoryImpl<E, Identity> extends DynamicRepositoryImpl imple
         return customQuery.getResultData();
     }
 
-    private List<Parameter> getParameterUpdateStatement(E entity, List<Parameter> parameters) throws IllegalAccessException {
+    private List<Parameter> getParameterUpdateStatement(Entity entity, List<Parameter> parameters) throws IllegalAccessException {
         List<Parameter> result = getParametersFromEntity(entity);
         result.addAll(parameters);
 
         return result;
     }
 
-    private List<Parameter> getParameterUpdateStatementWithExcludeFields(E entity, List<String> ignoreFields, List<Parameter> parameters) throws IllegalAccessException {
+    private List<Parameter> getParameterUpdateStatementWithExcludeFields(Entity entity, List<String> ignoreFields, List<Parameter> parameters) throws IllegalAccessException {
         List<Parameter> result = new LinkedList<>();
         Map<String, String> collect = ignoreFields.stream().collect(Collectors.toMap(Function.identity(), Function.identity(), (i1, i2) -> i1));
         List<Parameter> parametersFromEntity = getParametersFromEntity(entity);
@@ -480,11 +480,11 @@ public class CrudRepositoryImpl<E, Identity> extends DynamicRepositoryImpl imple
         return result;
     }
 
-    private List<Parameter> getParameterInsertStatement(E entity) throws IllegalAccessException {
+    private List<Parameter> getParameterInsertStatement(Entity entity) throws IllegalAccessException {
         return getParametersFromEntity(entity);
     }
 
-    private List<Parameter> getParametersFromEntity(E entity) throws IllegalAccessException {
+    private List<Parameter> getParametersFromEntity(Entity entity) throws IllegalAccessException {
         List<Parameter> result = new LinkedList<>();
         for (Map.Entry<Field, String> entry : this.getColumnNames().entrySet()) {
             Field key = entry.getKey();
@@ -524,17 +524,17 @@ public class CrudRepositoryImpl<E, Identity> extends DynamicRepositoryImpl imple
     }
 
 
-    private String loadTableName(Class<E> entityClass) {
+    private String loadTableName(Class<Entity> entityClass) {
         Table tableAnnotation = entityClass.getAnnotation(Table.class);
         return tableAnnotation != null && StringUtils.isNotEmpty(tableAnnotation.name()) ? tableAnnotation.name().trim().replace(" ", "") : entityClass.getName();
     }
 
-    private boolean loadIsReadOnlyFlag(Class<E> entityClass) {
+    private boolean loadIsReadOnlyFlag(Class<Entity> entityClass) {
         Table tableAnnotation = entityClass.getAnnotation(Table.class);
         return tableAnnotation == null || tableAnnotation.readOnly();
     }
 
-    private boolean loadIsViewFlag(Class<E> entityClass) {
+    private boolean loadIsViewFlag(Class<Entity> entityClass) {
         Table tableAnnotation = entityClass.getAnnotation(Table.class);
         return tableAnnotation == null || tableAnnotation.isView();
     }
@@ -553,7 +553,7 @@ public class CrudRepositoryImpl<E, Identity> extends DynamicRepositoryImpl imple
         return columnNames;
     }
 
-    private Field loadIdField(Field[] declaredFields, Class<E> entityClass) {
+    private Field loadIdField(Field[] declaredFields, Class<Entity> entityClass) {
         for (Field field : declaredFields) {
             AnnotatedType annotatedType = field.getAnnotatedType();
             Id idAnnotation = annotatedType.getAnnotation(Id.class);
@@ -776,7 +776,7 @@ public class CrudRepositoryImpl<E, Identity> extends DynamicRepositoryImpl imple
         return this.buildDeleteQuery(Arrays.asList(parameters));
     }
 
-    private Identity getIdValue(E entity) {
+    private Identity getIdValue(Entity entity) {
         try {
             this.idField.setAccessible(true);
             return (Identity) this.idField.get(entity);
@@ -794,7 +794,7 @@ public class CrudRepositoryImpl<E, Identity> extends DynamicRepositoryImpl imple
         return false;
     }
 
-    private List<Parameter> buildIdParameterFromEntity(E entity) {
+    private List<Parameter> buildIdParameterFromEntity(Entity entity) {
         Identity id = this.getIdValue(entity);
         return this.buildParameterFromId(id);
     }
@@ -825,10 +825,10 @@ public class CrudRepositoryImpl<E, Identity> extends DynamicRepositoryImpl imple
         throw new RuntimeException("Incorrect identity type");
     }
 
-    private E getEntity(ResultSet rs) throws InstantiationException, IllegalAccessException, SQLException, NoSuchMethodException, InvocationTargetException {
-        Constructor<E> entityConstructor = this.entityClass.getDeclaredConstructor();
+    private Entity getEntity(ResultSet rs) throws InstantiationException, IllegalAccessException, SQLException, NoSuchMethodException, InvocationTargetException {
+        Constructor<Entity> entityConstructor = this.entityClass.getDeclaredConstructor();
         entityConstructor.setAccessible(true);
-        E item = entityConstructor.newInstance();
+        Entity item = entityConstructor.newInstance();
         Map<String, String> columnFromResultSet = this.getColumnByResultSet(rs);
         for (Map.Entry<Field, String> entry : this.getColumnNames().entrySet()) {
             Field field = entry.getKey();
